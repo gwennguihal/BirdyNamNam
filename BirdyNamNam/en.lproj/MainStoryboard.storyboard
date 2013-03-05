@@ -132,7 +132,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="xji-cU-tCZ" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2356" y="-587"/>
+            <point key="canvasLocation" x="1818" y="-569"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="T6n-LN-9bM">
@@ -202,25 +202,6 @@
             <point key="canvasLocation" x="239" y="69"/>
         </scene>
     </scenes>
-    <classes>
-        <class className="GGMenuViewController" superclassName="UITableViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/GGMenuViewController.h"/>
-        </class>
-        <class className="GGTimeLineViewController" superclassName="UITableViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/GGTimeLineViewController.h"/>
-        </class>
-        <class className="GGViewController" superclassName="UIViewController">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/GGViewController.h"/>
-            <relationships>
-                <relationship kind="action" name="onLoginClick:"/>
-                <relationship kind="outlet" name="loginButton" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="spinner" candidateClass="UIActivityIndicatorView"/>
-            </relationships>
-        </class>
-        <class className="NSLayoutConstraint" superclassName="NSObject">
-            <source key="sourceIdentifier" type="project" relativePath="./Classes/NSLayoutConstraint.h"/>
-        </class>
-    </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>
