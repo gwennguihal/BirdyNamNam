@@ -113,7 +113,7 @@
 {
     // Return the number of rows in the section.
     id <NSFetchedResultsSectionInfo> sectionInfo = [self.fetcher.sections objectAtIndex:section];
-    return [sectionInfo numberOfObjects];
+    return [sectionInfo numberOfObjects] + 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -132,7 +132,6 @@
     
     static NSString *CellIdentifier = @"TweetCell";
     cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-    
     if (cell == nil)
     {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
@@ -234,25 +233,25 @@ return cell;
             
             [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
             
-            NSArray *beforeTweets;
-            NSMutableArray *moreTweets;
+            NSMutableArray *newTweets;
+            //NSMutableArray *moreTweets;
             
             if (beforeID == nil && sinceID == nil) // timeline for the first time
             {
-                NSArray *tweets = [self.twitterEngine getHomeTimelineBeforeID:beforeID count:50];
-                [self _saveTweetsinArray:tweets];
+                newTweets = [self.twitterEngine getHomeTimelineBeforeID:beforeID count:50];
+                
             }
             else if (sinceID != nil) // add new tweets
             {
-                beforeTweets = [self.twitterEngine getHomeTimelineSinceID:sinceID count:100];
-                [self _saveTweetsinArray:beforeTweets];
+                newTweets = [self.twitterEngine getHomeTimelineSinceID:sinceID count:100];
+                //[self _saveTweetsinArray:beforeTweets];
             }
             else if (beforeID != nil) // old tweets
             {
-                moreTweets = [[self.twitterEngine getHomeTimelineBeforeID:beforeID count:10] mutableCopy];
+                newTweets = [[self.twitterEngine getHomeTimelineBeforeID:beforeID count:5] mutableCopy];
                 // remove first object because of incluse request, last tweet included
-                if (moreTweets.count > 1) [moreTweets removeObjectAtIndex:0];
-                [self _saveTweetsinArray:moreTweets];
+                if (newTweets.count > 1) [newTweets removeObjectAtIndex:0];
+                //[self _saveTweetsinArray:moreTweets];
             }
             
             dispatch_sync(GCDMainThread, ^{
@@ -285,6 +284,8 @@ return cell;
                         [self.tableView insertRowsAtIndexPaths:  rangeArray  withRowAnimation:UITableViewRowAnimationFade];
                         [self.tableView endUpdates];
                     }*/
+                    
+                    [self _saveTweetsinArray:newTweets];
                     
                     if (_hasCache == NO)
                     {
@@ -421,6 +422,7 @@ return cell;
     // load more
     if (offsetY >= contentHeight && self._isFetchingTweets == NO)
     {
+        NSLog(@"load more !");
         [self _fetchTweetsBeforeID:self._oldestTweetID orSinceID:nil];
     }
 }
@@ -456,6 +458,7 @@ return cell;
 - (void)controllerWillChangeContent:(NSFetchedResultsController *)controller
 {
     // The fetch controller is about to start sending change notifications, so prepare the table view for updates.
+    //self.tableView.scrollEnabled = NO;
     [self.tableView beginUpdates];
 }
 
@@ -475,6 +478,7 @@ return cell;
             break;
             
         case NSFetchedResultsChangeUpdate:
+            //[self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationNone];
             [self configureCell:[tableView cellForRowAtIndexPath:indexPath] cellForRowAtIndexPath:indexPath];
             break;
             
@@ -505,6 +509,7 @@ return cell;
 {
     // The fetch controller has sent all current change notifications, so tell the table view to process all updates.
     [self.tableView endUpdates];
+    //self.tableView.scrollEnabled = YES;
 }
 
 #pragma mark - Table view delegate
@@ -522,7 +527,7 @@ return cell;
 
 - (void)viewWillAppear
 {
-    [self.tableView reloadData];
+    //[self.tableView reloadData];
 }
 
 
