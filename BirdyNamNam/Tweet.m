@@ -11,7 +11,22 @@
 
 @implementation Tweet
 
+//@dynamic json;
 @dynamic tweetid;
 @dynamic json;
+@synthesize infos = _infos;
+
+- (NSDictionary*)infos
+{
+    if (_infos != nil)
+    {
+        return _infos;
+    }
+    
+    NSData *data = [self.json dataUsingEncoding:NSUTF8StringEncoding];
+    _infos = removeNull([NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil]);
+    
+    return _infos;
+}
 
 @end

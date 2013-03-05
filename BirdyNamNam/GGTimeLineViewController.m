@@ -17,7 +17,7 @@
 }
 
 @property BOOL _isFetchingTweets;
-@property NSString *_firstTweetID, *_lastTweetID;
+@property (strong,nonatomic) NSString *_oldestTweetID, *_newestTweetID;
 @property UIView *_refreshHeaderView;
 @property UILabel *_refreshLabel;
 @property UIActivityIndicatorView *_spinner;
@@ -28,8 +28,28 @@
 
 @implementation GGTimeLineViewController
 
-@synthesize twitterEngine, tweets, imageCache, moc, fetcher;
-@synthesize _firstTweetID, _lastTweetID, _refreshHeaderView, _refreshLabel, _spinner;
+@synthesize twitterEngine, imageCache, moc, fetcher = _fetcher;
+@synthesize _oldestTweetID, _newestTweetID, _refreshHeaderView, _refreshLabel, _spinner;
+
+// getter fetcher
+- (NSFetchedResultsController*) fetcher
+{
+    if (_fetcher != nil)
+    {
+        return _fetcher;
+    }
+    
+    NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Tweet"];
+    request.sortDescriptors = @[ [NSSortDescriptor sortDescriptorWithKey:@"tweetid" ascending:NO] ];
+    request.fetchBatchSize = 20;
+    
+    _fetcher = [[NSFetchedResultsController alloc] initWithFetchRequest:request managedObjectContext:self.moc sectionNameKeyPath:nil cacheName:@"Root"];
+    self.fetcher = _fetcher;
+    
+    _fetcher.delegate = self;
+    
+    return _fetcher;
+}
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -44,8 +64,6 @@
 {
     [super viewDidLoad];
     
-    _hasCache = NO;
-    
     // coredata
     self.moc = [(GGAppDelegate*)[[UIApplication sharedApplication] delegate] managedObjectContext];
     
@@ -53,20 +71,20 @@
     
     self.title = @"My Timeline";
     
-    
     imageCache = [[NSCache alloc] init];
+    
     self.twitterEngine = [FHSTwitterEngine sharedTwitterEngine];
     
-    // fetcher
-    
-    // get core data tweets
-    NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Tweet"];
-    request.sortDescriptors = @[ [NSSortDescriptor sortDescriptorWithKey:@"tweetid" ascending:NO] ];
-    request.fetchLimit = 1;
-    
     NSError *error;
-    NSArray *results = [self.moc executeFetchRequest:request error:&error];
-    if (results.lastObject)
+    if ( ![self.fetcher performFetch:&error] )
+    {
+        NSLog(@"Error fetching results %@, %@",error,error.userInfo);
+    }
+    
+    [self _getOldestTweetID];
+    [self _getNewestTweetID];
+    
+    if (self._oldestTweetID)
     {
         _hasCache = YES;
     }
@@ -75,12 +93,6 @@
         _hasCache = NO;
         [self _fetchTweetsBeforeID:nil orSinceID:nil];
     }
-
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
- 
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
 }
 
 - (void)didReceiveMemoryWarning
@@ -94,21 +106,21 @@
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
     // Return the number of sections.
-    return 1;
+    return self.fetcher.sections.count;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    return tweets.count + 1;
+    id <NSFetchedResultsSectionInfo> sectionInfo = [self.fetcher.sections objectAtIndex:section];
+    return [sectionInfo numberOfObjects];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    
     UITableViewCell *cell;
     
-    if (indexPath.row == tweets.count)
+    if (indexPath.row == self.fetcher.fetchedObjects.count)
     {
         cell = [tableView dequeueReusableCellWithIdentifier:@"MoreCell"];
         if (cell == nil)
@@ -120,21 +132,30 @@
     
     static NSString *CellIdentifier = @"TweetCell";
     cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-    //UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     
     if (cell == nil)
     {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
     }
+    
+    [self configureCell:cell cellForRowAtIndexPath:indexPath];
 
-    NSDictionary *tweet = [tweets objectAtIndex:indexPath.row];
-    NSString *text = [tweet objectForKey:@"text"];
-    NSString *authorName = [[tweet objectForKey:@"user"] objectForKey:@"name"];
+return cell;
+
+}
+
+- (void)configureCell:(UITableViewCell *)cell cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    Tweet *tweet = [self.fetcher objectAtIndexPath:indexPath];
+    
+    //NSDictionary *tweet = [tweets objectAtIndex:indexPath.row];
+    NSString *text = [tweet.infos objectForKey:@"text"];
+    NSString *authorName = [[tweet.infos objectForKey:@"user"] objectForKey:@"name"];
     
     
     UILabel *authorNameLabel = (UILabel*)[cell viewWithTag:2];
     authorNameLabel.text = authorName;
-
+    
     
     UILabel *textLabel = (UILabel*)[cell viewWithTag:3];
     textLabel.font = [UIFont systemFontOfSize:12.0];
@@ -143,7 +164,7 @@
     
     UIImageView *authorImageView = (UIImageView*)[cell viewWithTag:1];
     // image, cache or not cache ?
-    NSString *imageUrl = [[tweet objectForKey:@"user"] objectForKey:@"profile_image_url"];
+    NSString *imageUrl = [[tweet.infos objectForKey:@"user"] objectForKey:@"profile_image_url"];
     NSData *data = [imageCache objectForKey:imageUrl];
     if (data)
     {
@@ -153,24 +174,52 @@
     {
         authorImageView.image = [UIImage imageNamed:@"Placeholder.png"];
     }
-    
-    return cell;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    //GGTweetTableViewCell *cell = (GGTweetTableViewCell*)[tableView cellForRowAtIndexPath:indexPath];
-    
-    if (indexPath.row == tweets.count)
+    if (indexPath.row == self.fetcher.fetchedObjects.count)
     {
         return tableView.rowHeight;
     }
     
-    NSDictionary *tweet = [tweets objectAtIndex:indexPath.row];
+    Tweet *tweetEntity = [self.fetcher objectAtIndexPath:indexPath];
+    NSData *json = [tweetEntity.json dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *tweet = removeNull([NSJSONSerialization JSONObjectWithData:json options:NSJSONReadingMutableContainers error:nil]);
+    
     NSString *text = [tweet objectForKey:@"text"];
     CGSize textSize = [text sizeWithFont:[UIFont systemFontOfSize:12] constrainedToSize: CGSizeMake( 230,CGFLOAT_MAX )];
     
     return MAX(textSize.height + 40,tableView.rowHeight);
+}
+
+- (void)_saveTweetsinArray:(NSArray*)tweets
+{
+    // save in core data
+    for (NSDictionary *tweet in tweets)
+    {
+        NSError *error;
+        
+        Tweet *tweetEntity = [NSEntityDescription insertNewObjectForEntityForName:@"Tweet" inManagedObjectContext:moc];
+        NSData *json = [NSJSONSerialization dataWithJSONObject:tweet options:NSJSONWritingPrettyPrinted error:&error];
+        if (json != nil)
+        {
+            tweetEntity.json = [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding];
+            tweetEntity.tweetid = [tweet objectForKey:@"id_str"];
+            
+            // save
+            if (![moc save:&error])
+            {
+                NSLog(@"Error saving Tweet %@ , %@",error,error.userInfo);
+            }
+        }
+        else
+        {
+            NSLog(@"Error create JSON Frow Tweet %@ , %@",error,error.userInfo);
+        }
+    }
+    
+    
 }
 
 - (void)_fetchTweetsBeforeID:(NSString *)beforeID orSinceID:(NSString *) sinceID
@@ -182,54 +231,34 @@
     
     dispatch_async(GCDBackgroundThread, ^{
         @autoreleasepool {
+            
             [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
             
             NSArray *beforeTweets;
-            NSArray *moreTweets;
+            NSMutableArray *moreTweets;
             
             if (beforeID == nil && sinceID == nil) // timeline for the first time
             {
-                self.tweets = [NSMutableArray arrayWithArray:[self.twitterEngine getHomeTimelineBeforeID:beforeID count:50]];
-                
-                // save in core data
-                for (NSDictionary *tweet in self.tweets)
-                {
-                    NSError *error;
-                    
-                    Tweet *tweetEntity = [NSEntityDescription insertNewObjectForEntityForName:@"Tweet" inManagedObjectContext:moc];
-                    NSData *json = [NSJSONSerialization dataWithJSONObject:tweet options:NSJSONWritingPrettyPrinted error:&error];
-                    if (json != nil)
-                    {
-                        tweetEntity.json = [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding];
-                        tweetEntity.tweetid = [tweet objectForKey:@"id_str"];
-                        
-                        // save
-                        if (![moc save:&error])
-                        {
-                            NSLog(@"Error saving Tweet %@ , %@",error,error.userInfo);
-                        }
-                    }
-                    else
-                    {
-                        NSLog(@"Error create JSON Frow Tweet %@ , %@",error,error.userInfo);
-                    }
-                }
-                
-                
+                NSArray *tweets = [self.twitterEngine getHomeTimelineBeforeID:beforeID count:50];
+                [self _saveTweetsinArray:tweets];
             }
-            else if (sinceID) // add old tweets
+            else if (sinceID != nil) // add new tweets
             {
                 beforeTweets = [self.twitterEngine getHomeTimelineSinceID:sinceID count:100];
+                [self _saveTweetsinArray:beforeTweets];
             }
-            else if (beforeID) // update timeline
+            else if (beforeID != nil) // old tweets
             {
-                moreTweets = [self.twitterEngine getHomeTimelineBeforeID:beforeID count:20];
+                moreTweets = [[self.twitterEngine getHomeTimelineBeforeID:beforeID count:10] mutableCopy];
+                // remove first object because of incluse request, last tweet included
+                if (moreTweets.count > 1) [moreTweets removeObjectAtIndex:0];
+                [self _saveTweetsinArray:moreTweets];
             }
             
             dispatch_sync(GCDMainThread, ^{
                 @autoreleasepool
                 {                    
-                    if (beforeTweets && beforeTweets.count > 0)
+                    /*if (beforeTweets && beforeTweets.count > 0)
                     {
                         [self.tableView beginUpdates];
                         NSRange range = NSMakeRange(0, beforeTweets.count);
@@ -255,30 +284,54 @@
                         [self.tweets addObjectsFromArray: [moreTweets subarrayWithRange:NSMakeRange(1, moreTweets.count-1)]];
                         [self.tableView insertRowsAtIndexPaths:  rangeArray  withRowAnimation:UITableViewRowAnimationFade];
                         [self.tableView endUpdates];
-                    }
-                    else
+                    }*/
+                    
+                    if (_hasCache == NO)
                     {
+                        _hasCache = YES;
                         [self.tableView reloadData];
                     }
                     
                     [self _loadAuthorImageForVisibleRows];
                     
-                    self._firstTweetID = [[self.tweets objectAtIndex:self.tweets.count - 1] objectForKey:@"id_str"];
-                    self._lastTweetID = [[self.tweets objectAtIndex:0] objectForKey:@"id_str"];
+                    [self _getOldestTweetID];
+                    [self _getNewestTweetID];
                     
                     [SVProgressHUD showSuccessWithStatus:@"Done !"];
                     [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
                     self._isFetchingTweets = NO;
                     self.tableView.contentInset = UIEdgeInsetsZero;
                     [_spinner stopAnimating];
-                    
-                    //UIAlertView *av = [[UIAlertView alloc]initWithTitle:@"Complete!" message:@"Your list of followers has been fetched" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-                    //[av show];
-                    
                 }
             });
         }
     });
+}
+
+- (void)_getOldestTweetID
+{
+    NSError *error;
+    NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Tweet"];
+    request.sortDescriptors = @[ [NSSortDescriptor sortDescriptorWithKey:@"tweetid" ascending:YES] ];
+    request.fetchLimit = 1;
+    NSArray *results = [self.moc executeFetchRequest:request error:&error];
+    if (results.lastObject)
+    {
+        self._oldestTweetID = ( (Tweet*)results.lastObject ).tweetid;
+    }
+}
+
+- (void)_getNewestTweetID
+{
+    NSError *error;
+    NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Tweet"];
+    request.sortDescriptors = @[ [NSSortDescriptor sortDescriptorWithKey:@"tweetid" ascending:NO] ];
+    request.fetchLimit = 1;
+    NSArray *results = [self.moc executeFetchRequest:request error:&error];
+    if (results.lastObject)
+    {
+        self._newestTweetID = ( (Tweet*) [results objectAtIndex:0] ).tweetid;
+    }
 }
 
 - (void)_addPullToRefreshHeader
@@ -303,19 +356,20 @@
 
 - (void)_loadAuthorImageForVisibleRows
 {
-    if ([self.tweets count] > 0)
-    {
+    if (self.fetcher.fetchedObjects.count > 0)
+    {   
         NSArray *visiblePaths = [self.tableView indexPathsForVisibleRows];
         
         for (NSIndexPath *indexPath in visiblePaths)
         {
-            if (indexPath.row >= self.tweets.count) return;
+            if (indexPath.row >= self.fetcher.fetchedObjects.count) return;
             
-            NSDictionary *tweet = [tweets objectAtIndex:indexPath.row];
+            Tweet *tweet = [self.fetcher objectAtIndexPath:indexPath];
+            
             UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
             UIImageView *authorImageView = (UIImageView*)[cell viewWithTag:1];
             
-            NSString *imageUrl = [[tweet objectForKey:@"user"] objectForKey:@"profile_image_url"];
+            NSString *imageUrl = [[tweet.infos objectForKey:@"user"] objectForKey:@"profile_image_url"];
             
             if ([imageCache objectForKey:imageUrl])
             {
@@ -331,9 +385,12 @@
                         @autoreleasepool
                         {
                             // cache image
-                            [imageCache setObject:data forKey:imageUrl];
-                            // add image
-                            authorImageView.image = [UIImage imageWithData:data];
+                            if (data != nil)
+                            {
+                                [imageCache setObject:data forKey:imageUrl];
+                                // add image
+                                authorImageView.image = [UIImage imageWithData:data];
+                            }
                         }
                     });
                 }
@@ -364,7 +421,7 @@
     // load more
     if (offsetY >= contentHeight && self._isFetchingTweets == NO)
     {
-        [self _fetchTweetsBeforeID:self._firstTweetID orSinceID:nil];
+        [self _fetchTweetsBeforeID:self._oldestTweetID orSinceID:nil];
     }
 }
 
@@ -376,7 +433,7 @@
     {
         self.tableView.contentInset = UIEdgeInsetsMake(-offsetY, 0, 0, 0);
         [_spinner startAnimating];
-        [self _fetchTweetsBeforeID:nil orSinceID:_lastTweetID];
+        [self _fetchTweetsBeforeID:nil orSinceID:_newestTweetID];
     }
     
     if (!decelerate)
@@ -388,6 +445,66 @@
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
     [self _loadAuthorImageForVisibleRows];
+}
+
+#pragma mark - NsFetchedResultsController delegate
+
+/*
+ NSFetchedResultsController delegate methods to respond to additions, removals and so on.
+ */
+
+- (void)controllerWillChangeContent:(NSFetchedResultsController *)controller
+{
+    // The fetch controller is about to start sending change notifications, so prepare the table view for updates.
+    [self.tableView beginUpdates];
+}
+
+
+- (void)controller:(NSFetchedResultsController *)controller didChangeObject:(id)anObject atIndexPath:(NSIndexPath *)indexPath forChangeType:(NSFetchedResultsChangeType)type newIndexPath:(NSIndexPath *)newIndexPath
+{
+    UITableView *tableView = self.tableView;
+    
+    switch(type) {
+            
+        case NSFetchedResultsChangeInsert:
+            [tableView insertRowsAtIndexPaths:[NSArray arrayWithObject:newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
+            break;
+            
+        case NSFetchedResultsChangeDelete:
+            [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            break;
+            
+        case NSFetchedResultsChangeUpdate:
+            [self configureCell:[tableView cellForRowAtIndexPath:indexPath] cellForRowAtIndexPath:indexPath];
+            break;
+            
+        case NSFetchedResultsChangeMove:
+            [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            [tableView insertRowsAtIndexPaths:[NSArray arrayWithObject:newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
+            break;
+    }
+}
+
+
+- (void)controller:(NSFetchedResultsController *)controller didChangeSection:(id <NSFetchedResultsSectionInfo>)sectionInfo atIndex:(NSUInteger)sectionIndex forChangeType:(NSFetchedResultsChangeType)type
+{
+    switch(type) {
+            
+        case NSFetchedResultsChangeInsert:
+            [self.tableView insertSections:[NSIndexSet indexSetWithIndex:sectionIndex] withRowAnimation:UITableViewRowAnimationFade];
+            break;
+            
+        case NSFetchedResultsChangeDelete:
+            [self.tableView deleteSections:[NSIndexSet indexSetWithIndex:sectionIndex] withRowAnimation:UITableViewRowAnimationFade];
+            break;
+    }
+}
+
+
+- (void)controllerDidChangeContent:(NSFetchedResultsController *)controller
+{
+    // The fetch controller has sent all current change notifications, so tell the table view to process all updates.
+    [self.tableView endUpdates];
 }
 
 #pragma mark - Table view delegate
@@ -402,5 +519,18 @@
      [self.navigationController pushViewController:detailViewController animated:YES];
      */
 }
+
+- (void)viewWillAppear
+{
+    [self.tableView reloadData];
+}
+
+
+- (void)viewDidUnload
+{
+    self.fetcher = nil;
+}
+
+
 
 @end

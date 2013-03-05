@@ -8,12 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
-@interface GGTimeLineViewController : UITableViewController <UIScrollViewDelegate>
+@interface GGTimeLineViewController : UITableViewController <UIScrollViewDelegate, NSFetchedResultsControllerDelegate>
 
-@property NSManagedObjectContext *moc;
-@property FHSTwitterEngine *twitterEngine;
-@property NSMutableArray *tweets;
-@property NSCache *imageCache;
-@property NSFetchedResultsController *fetcher;
+@property (strong, nonatomic) NSManagedObjectContext *moc;
+@property (strong, nonatomic) FHSTwitterEngine *twitterEngine;
+@property (strong, nonatomic) NSCache *imageCache;
+@property (strong, nonatomic) NSFetchedResultsController *fetcher;
 
 @end
