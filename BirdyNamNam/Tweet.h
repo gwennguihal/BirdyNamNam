@@ -14,6 +14,6 @@
 
 @property (nonatomic, retain) NSString * tweetid;
 @property (nonatomic, retain) NSString * json;
-@property (nonatomic, strong, readonly) NSDictionary *infos;
+@property (nonatomic, strong) NSDictionary *infos;
 
 @end

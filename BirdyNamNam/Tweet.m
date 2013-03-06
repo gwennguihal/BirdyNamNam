@@ -14,7 +14,14 @@
 //@dynamic json;
 @dynamic tweetid;
 @dynamic json;
-@synthesize infos = _infos;
+@synthesize infos;
+
+- (void)awakeFromFetch
+{
+    [super awakeFromFetch];
+    NSData *data = [self.json dataUsingEncoding:NSUTF8StringEncoding];
+    self.infos = removeNull([NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil]);
+}
 
 /*- (NSDictionary*)infos
 {
