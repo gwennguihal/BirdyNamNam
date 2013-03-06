@@ -17,6 +17,8 @@
 		354D2CB816E4B0AF00E17F5B /* AFXMLRequestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 354D2CAE16E4B0AF00E17F5B /* AFXMLRequestOperation.m */; };
 		354D2CB916E4B0AF00E17F5B /* UIImageView+AFNetworking.m in Sources */ = {isa = PBXBuildFile; fileRef = 354D2CB016E4B0AF00E17F5B /* UIImageView+AFNetworking.m */; };
 		354D2CBF16E4B59300E17F5B /* Tweet.m in Sources */ = {isa = PBXBuildFile; fileRef = 354D2CBE16E4B59300E17F5B /* Tweet.m */; };
+		354D2CC216E7835900E17F5B /* GGDetailTweetViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 354D2CC116E7835800E17F5B /* GGDetailTweetViewController.m */; };
+		354D2CC516E7ABE800E17F5B /* GGDetailTweetTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 354D2CC416E7ABE800E17F5B /* GGDetailTweetTableViewCell.m */; };
 		3587F52F16D65B6300A95216 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3587F52E16D65B6300A95216 /* UIKit.framework */; };
 		3587F53116D65B6300A95216 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3587F53016D65B6300A95216 /* Foundation.framework */; };
 		3587F53316D65B6300A95216 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3587F53216D65B6300A95216 /* CoreGraphics.framework */; };
@@ -72,6 +74,10 @@
 		354D2CB016E4B0AF00E17F5B /* UIImageView+AFNetworking.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImageView+AFNetworking.m"; sourceTree = "<group>"; };
 		354D2CBD16E4B59300E17F5B /* Tweet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Tweet.h; sourceTree = "<group>"; };
 		354D2CBE16E4B59300E17F5B /* Tweet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Tweet.m; sourceTree = "<group>"; };
+		354D2CC016E7835800E17F5B /* GGDetailTweetViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GGDetailTweetViewController.h; sourceTree = "<group>"; };
+		354D2CC116E7835800E17F5B /* GGDetailTweetViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GGDetailTweetViewController.m; sourceTree = "<group>"; };
+		354D2CC316E7ABE700E17F5B /* GGDetailTweetTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GGDetailTweetTableViewCell.h; sourceTree = "<group>"; };
+		354D2CC416E7ABE800E17F5B /* GGDetailTweetTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GGDetailTweetTableViewCell.m; sourceTree = "<group>"; };
 		3587F52B16D65B6300A95216 /* BirdyNamNam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BirdyNamNam.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3587F52E16D65B6300A95216 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		3587F53016D65B6300A95216 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -214,6 +220,10 @@
 				3587F57A16D7B2D500A95216 /* GGMenuViewController.m */,
 				3587F57C16D7D7DA00A95216 /* GGTimeLineViewController.h */,
 				3587F57D16D7D7DA00A95216 /* GGTimeLineViewController.m */,
+				354D2CC016E7835800E17F5B /* GGDetailTweetViewController.h */,
+				354D2CC116E7835800E17F5B /* GGDetailTweetViewController.m */,
+				354D2CC316E7ABE700E17F5B /* GGDetailTweetTableViewCell.h */,
+				354D2CC416E7ABE800E17F5B /* GGDetailTweetTableViewCell.m */,
 			);
 			path = BirdyNamNam;
 			sourceTree = "<group>";
@@ -398,6 +408,8 @@
 				354D2CB816E4B0AF00E17F5B /* AFXMLRequestOperation.m in Sources */,
 				354D2CB916E4B0AF00E17F5B /* UIImageView+AFNetworking.m in Sources */,
 				354D2CBF16E4B59300E17F5B /* Tweet.m in Sources */,
+				354D2CC216E7835900E17F5B /* GGDetailTweetViewController.m in Sources */,
+				354D2CC516E7ABE800E17F5B /* GGDetailTweetTableViewCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

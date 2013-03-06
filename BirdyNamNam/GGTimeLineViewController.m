@@ -10,6 +10,7 @@
 #import "GGAppDelegate.h"
 #import "SVProgressHUD.h"
 #import "Tweet.h"
+#import "GGDetailTweetViewController.h"
 
 @interface GGTimeLineViewController ()
 {
@@ -95,6 +96,12 @@
     }
 }
 
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    [self _loadAuthorImageForVisibleRows];
+}
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -163,8 +170,9 @@ return cell;
     
     UIImageView *authorImageView = (UIImageView*)[cell viewWithTag:1];
     // image, cache or not cache ?
-    NSString *imageUrl = [[tweet.infos objectForKey:@"user"] objectForKey:@"profile_image_url"];
-    NSData *data = [imageCache objectForKey:imageUrl];
+    NSString *authorID = [[tweet.infos objectForKey:@"user"] objectForKey:@"id_str"];
+
+    /*NSData *data = [imageCache objectForKey:authorID];
     if (data)
     {
         authorImageView.image = [UIImage imageWithData: data ];
@@ -172,7 +180,27 @@ return cell;
     else
     {
         authorImageView.image = [UIImage imageNamed:@"Placeholder.png"];
-    }
+    }*/
+    
+    
+    dispatch_async(GCDBackgroundThread, ^{
+        @autoreleasepool {
+            NSData *data = [imageCache objectForKey:authorID];
+            dispatch_sync(GCDMainThread, ^{
+                @autoreleasepool
+                {
+                    if (data)
+                    {
+                        authorImageView.image = [UIImage imageWithData: data ];
+                    }
+                    else
+                    {
+                        authorImageView.image = [UIImage imageNamed:@"Placeholder.png"];
+                    }
+                }});
+        }});
+    
+    //authorImageView.image = [UIImage imageNamed:@"Placeholder.png"];
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -203,8 +231,13 @@ return cell;
         NSData *json = [NSJSONSerialization dataWithJSONObject:tweet options:NSJSONWritingPrettyPrinted error:&error];
         if (json != nil)
         {
-            tweetEntity.json = [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding];
+            NSString *jsonstr = [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding];
+            tweetEntity.json = jsonstr;
             tweetEntity.tweetid = [tweet objectForKey:@"id_str"];
+            // save json as nsdictionnary
+            NSData *data = [jsonstr dataUsingEncoding:NSUTF8StringEncoding];
+            tweetEntity.infos = removeNull([NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil]);
+
             
             // save
             if (![moc save:&error])
@@ -243,7 +276,7 @@ return cell;
             }
             else if (sinceID != nil) // add new tweets
             {
-                newTweets = [self.twitterEngine getHomeTimelineSinceID:sinceID count:100];
+                newTweets = [self.twitterEngine getHomeTimelineSinceID:sinceID count:50];
                 //[self _saveTweetsinArray:beforeTweets];
             }
             else if (beforeID != nil) // old tweets
@@ -371,12 +404,30 @@ return cell;
             UIImageView *authorImageView = (UIImageView*)[cell viewWithTag:1];
             
             NSString *imageUrl = [[tweet.infos objectForKey:@"user"] objectForKey:@"profile_image_url"];
+            NSString *extension = [@"." stringByAppendingString:[imageUrl pathExtension]];
+            NSString *authorID = [[tweet.infos objectForKey:@"user"] objectForKey:@"id_str"];
+            NSString *path = [[NSTemporaryDirectory() stringByAppendingPathComponent:authorID] stringByAppendingString:extension];
             
-            if ([imageCache objectForKey:imageUrl])
+            // ram
+            NSData *data = [imageCache objectForKey:authorID];
+            if (data != nil)
             {
+                authorImageView.image = [UIImage imageWithData:data];
                 continue;
             }
             
+            // disk
+            if ( [[NSFileManager defaultManager] fileExistsAtPath: path] )
+            {
+                // put in nscache
+                NSData *data = [NSData dataWithContentsOfFile:path];
+                [imageCache setObject:data forKey:authorID];
+                // add image
+                authorImageView.image = [UIImage imageWithData:data];
+                continue;
+            }
+            
+            // load
             dispatch_async(GCDBackgroundThread, ^{
                 @autoreleasepool
                 {
@@ -385,10 +436,12 @@ return cell;
                     dispatch_sync(GCDMainThread, ^{
                         @autoreleasepool
                         {
-                            // cache image
+                            // disk + cache image
                             if (data != nil)
                             {
-                                [imageCache setObject:data forKey:imageUrl];
+                                [data writeToFile:path atomically:NO];
+                                
+                                [imageCache setObject:data forKey:authorID];
                                 // add image
                                 authorImageView.image = [UIImage imageWithData:data];
                             }
@@ -397,6 +450,21 @@ return cell;
                 }
             });
         }
+    }
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+{
+    if ([segue.identifier isEqualToString:@"showDetailTweetSegue"])
+    {
+        GGDetailTweetViewController *detailTweetViewController = (GGDetailTweetViewController*)segue.destinationViewController;
+        
+        UITableViewCell *cell = (UITableViewCell*)sender;
+        NSIndexPath *indexPath = [self.tableView indexPathForCell:cell];
+        Tweet *tweet = [self.fetcher objectAtIndexPath:indexPath];
+        
+        detailTweetViewController.managedObjectId = tweet.objectID;
+        detailTweetViewController.imageCache = self.imageCache;
     }
 }
 
