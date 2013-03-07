@@ -1768,7 +1768,8 @@ static FHSTwitterEngine *instance = nil;
     }
     
     if (response.statusCode >= 304) {
-        return [NSError errorWithDomain:[self getSarcasticErrorDescriptionForErrorCode:response.statusCode] code:response.statusCode userInfo:[NSDictionary dictionaryWithObject:request forKey:@"request"]];
+        NSError *error = [NSError errorWithDomain:[self getSarcasticErrorDescriptionForErrorCode:response.statusCode] code:response.statusCode userInfo:[NSDictionary dictionaryWithObject:request forKey:@"request"]];
+        return error;
     }
     
     if ([parsedJSONResponse isKindOfClass:[NSDictionary class]]) {
@@ -1874,6 +1875,9 @@ static FHSTwitterEngine *instance = nil;
     } else {
         savedHttpBody = [[NSUserDefaults standardUserDefaults]objectForKey:@"SavedAccessHTTPBody"];
     }
+    
+#warning test only
+    savedHttpBody = @"oauth_token=18190677-oXz76z6ynC9IW9ffsTYUzoztsvB2RsVW8srA0yuww&oauth_token_secret=WL8LBhtqhfI5lOdJCGdfcf6JSwRXal2CHrmUkYi5vU&user_id=18190677&screen_name=_myrddin_";
     
     self.accessToken = [[OAToken alloc]initWithHTTPResponseBody:savedHttpBody];
     self.loggedInUsername = [self extractUsernameFromHTTPBody:savedHttpBody];

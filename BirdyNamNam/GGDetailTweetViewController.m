@@ -92,7 +92,39 @@
     cell.textLabel.text = text;
     [cell.textLabel sizeToFitFixedWidth];
     
-    cell.dateLabel.text = [_tweet.infos objectForKey:@"created_at"];
+    
+    // "Wed Mar 06 17:01:41 +0000 2013"
+    
+    
+    NSString *dateString = [_tweet.infos objectForKey:@"created_at"];
+    
+    static NSDateFormatter *twitterDateFormatter = nil;
+    if (twitterDateFormatter == nil)
+    {
+        twitterDateFormatter = [[NSDateFormatter alloc] init];
+        [twitterDateFormatter setLocale: [[NSLocale alloc] initWithLocaleIdentifier:@"en_US"] ];
+        [twitterDateFormatter setDateFormat:@"EEE MMM dd HH:mm:ss Z yyyy"];
+        //[twitterDateFormatter setDateStyle:NSDateFormatterLongStyle];
+        [twitterDateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];
+    }
+    NSDate *date = [twitterDateFormatter dateFromString:dateString];
+    
+    static NSDateFormatter *displayDateFormatter = nil;
+    if (displayDateFormatter == nil)
+    {
+        displayDateFormatter = [[NSDateFormatter alloc] init];
+        [displayDateFormatter setLocale: [[NSLocale alloc] initWithLocaleIdentifier:@"fr_FR"] ];
+        [displayDateFormatter setDateFormat:@"EEEE dd MMMM HH:mm"];
+
+        //[displayDateFormatter setDateStyle:NSDateFormatterFullStyle];
+        //[displayDateFormatter setDateStyle:NSDateFormatterMediumStyle];
+        /*[displayDateFormatter setLocale: [NSLocale currentLocale ]];
+        [displayDateFormatter setDateFormat:@"EEE MMM dd HH:mm:ss Z yyyy"];
+        
+        [displayDateFormatter setTimeZone:[NSTimeZone timeZoneWithName:@"GMT"]];*/
+    }
+    
+    cell.dateLabel.text = [displayDateFormatter stringFromDate: date];
     
     NSString *authorID = [[_tweet.infos objectForKey:@"user"] objectForKey:@"id_str"];
     NSData *data = [imageCache objectForKey:authorID];
@@ -104,6 +136,21 @@
     {
         cell.authorImageView.image = [UIImage imageNamed:@"Placeholder.png"];
     }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    
+    // cell not created
+    //GGDetailTweetTableViewCell *cell = (GGDetailTweetTableViewCell*) [tableView cellForRowAtIndexPath:<#(NSIndexPath *)#>
+    
+    //83
+    NSLog(@"widdth %d",[GGDetailTweetTableViewCell TextLabelWidth]);
+    
+    NSString *text = [_tweet.infos objectForKey:@"text"];
+    CGSize textSize = [text sizeWithFont:[UIFont systemFontOfSize:12] constrainedToSize: CGSizeMake( [GGDetailTweetTableViewCell TextLabelWidth] ,CGFLOAT_MAX )];
+    
+    return MAX(textSize.height + [GGDetailTweetTableViewCell CellOffsetY],tableView.rowHeight);
 }
 
 /*

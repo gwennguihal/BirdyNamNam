@@ -12,6 +12,19 @@
 
 @synthesize authorImageView, authorNameLabel, authorScreenNameLabel, textLabel, dateLabel;
 
+static int _TextLabelWidth;
+static int _CellOffsetY;
+
++ (int)CellOffsetY
+{
+    return _CellOffsetY;
+}
+
++ (int)TextLabelWidth
+{
+    return _TextLabelWidth;
+}
+
 - (void)layoutSubviews
 {
     [super layoutSubviews];
@@ -25,7 +38,8 @@
     
     self.dateLabel.frame = newFrame;
     
-    
+    _TextLabelWidth = self.textLabel.frame.size.width;
+    _CellOffsetY = self.dateLabel.frame.origin.y + self.dateLabel.frame.size.height;
 }
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
