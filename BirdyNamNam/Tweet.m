@@ -14,26 +14,34 @@
 //@dynamic json;
 @dynamic tweetid;
 @dynamic json;
-@synthesize infos;
+@synthesize infos = _infos;
 
 - (void)awakeFromFetch
 {
     [super awakeFromFetch];
+    /*[self willAccessValueForKey:@"json"];
+    NSError *error;
     NSData *data = [self.json dataUsingEncoding:NSUTF8StringEncoding];
-    self.infos = removeNull([NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil]);
+    self.infos = removeNull([NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:&error]);
+    if (self.infos == nil)
+    {
+        NSLog(@"Error parsing json %@,%@",error.description,error.userInfo);
+    }
+    [self didAccessValueForKey:@"json"];*/
 }
 
-/*- (NSDictionary*)infos
+- (NSDictionary*)infos
 {
-    if (_infos != nil)
+    if (_infos == nil)
     {
-        return _infos;
+        NSLog(@"id %@",self.tweetid);
+        [self willAccessValueForKey:@"json"];
+        NSData *data = [self.json dataUsingEncoding:NSUTF8StringEncoding];
+        _infos = removeNull([NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil]);
+        [self didAccessValueForKey:@"json"];
     }
     
-    NSData *data = [self.json dataUsingEncoding:NSUTF8StringEncoding];
-    _infos = removeNull([NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil]);
-    
     return _infos;
-}*/
+}
 
 @end

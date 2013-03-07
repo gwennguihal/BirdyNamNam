@@ -210,6 +210,8 @@
 		3587F53416D65B6300A95216 /* BirdyNamNam */ = {
 			isa = PBXGroup;
 			children = (
+				354D2CBD16E4B59300E17F5B /* Tweet.h */,
+				354D2CBE16E4B59300E17F5B /* Tweet.m */,
 				3587F53D16D65B6300A95216 /* GGAppDelegate.h */,
 				3587F53E16D65B6300A95216 /* GGAppDelegate.m */,
 				3587F54616D65B6300A95216 /* MainStoryboard.storyboard */,
@@ -231,8 +233,6 @@
 		3587F53516D65B6300A95216 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				354D2CBD16E4B59300E17F5B /* Tweet.h */,
-				354D2CBE16E4B59300E17F5B /* Tweet.m */,
 				3587F67F16E112E200A95216 /* birdynamnam.xcdatamodeld */,
 				3587F58216DD0BB900A95216 /* Placeholder.png */,
 				3587F53616D65B6300A95216 /* BirdyNamNam-Info.plist */,

@@ -92,7 +92,9 @@
     else
     {
         _hasCache = NO;
-        [self _fetchTweetsBeforeID:nil orSinceID:nil];
+        // test
+        #warning Only for test
+        [self _fetchTweetsBeforeID:@"309333770081804300" orSinceID:nil];
     }
 }
 
@@ -154,6 +156,9 @@ return cell;
 {
     Tweet *tweet = [self.fetcher objectAtIndexPath:indexPath];
     
+    //NSData *data = [tweet.json dataUsingEncoding:NSUTF8StringEncoding];
+    //tweet.infos = removeNull([NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil]);
+    
     //NSDictionary *tweet = [tweets objectAtIndex:indexPath.row];
     NSString *text = [tweet.infos objectForKey:@"text"];
     NSString *authorName = [[tweet.infos objectForKey:@"user"] objectForKey:@"name"];
@@ -172,17 +177,6 @@ return cell;
     // image, cache or not cache ?
     NSString *authorID = [[tweet.infos objectForKey:@"user"] objectForKey:@"id_str"];
 
-    /*NSData *data = [imageCache objectForKey:authorID];
-    if (data)
-    {
-        authorImageView.image = [UIImage imageWithData: data ];
-    }
-    else
-    {
-        authorImageView.image = [UIImage imageNamed:@"Placeholder.png"];
-    }*/
-    
-    
     dispatch_async(GCDBackgroundThread, ^{
         @autoreleasepool {
             NSData *data = [imageCache objectForKey:authorID];
@@ -199,8 +193,6 @@ return cell;
                     }
                 }});
         }});
-    
-    //authorImageView.image = [UIImage imageNamed:@"Placeholder.png"];
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -210,11 +202,8 @@ return cell;
         return tableView.rowHeight;
     }
     
-    Tweet *tweetEntity = [self.fetcher objectAtIndexPath:indexPath];
-    NSData *json = [tweetEntity.json dataUsingEncoding:NSUTF8StringEncoding];
-    NSDictionary *tweet = removeNull([NSJSONSerialization JSONObjectWithData:json options:NSJSONReadingMutableContainers error:nil]);
-    
-    NSString *text = [tweet objectForKey:@"text"];
+    Tweet *tweet = [self.fetcher objectAtIndexPath:indexPath];
+    NSString *text = [tweet.infos objectForKey:@"text"];
     CGSize textSize = [text sizeWithFont:[UIFont systemFontOfSize:12] constrainedToSize: CGSizeMake( 230,CGFLOAT_MAX )];
     
     return MAX(textSize.height + 40,tableView.rowHeight);
@@ -222,33 +211,37 @@ return cell;
 
 - (void)_saveTweetsinArray:(NSArray*)tweets
 {
+    NSError *error;
+    
+    NSLog(@"tweets count to insert %d",tweets.count);
+    
     // save in core data
     for (NSDictionary *tweet in tweets)
     {
-        NSError *error;
-        
         Tweet *tweetEntity = [NSEntityDescription insertNewObjectForEntityForName:@"Tweet" inManagedObjectContext:moc];
         NSData *json = [NSJSONSerialization dataWithJSONObject:tweet options:NSJSONWritingPrettyPrinted error:&error];
         if (json != nil)
         {
             NSString *jsonstr = [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding];
             tweetEntity.json = jsonstr;
+            
+            NSLog(@"json str %d entity json %d %@",jsonstr.length,tweetEntity.json.length,jsonstr);
+            
             tweetEntity.tweetid = [tweet objectForKey:@"id_str"];
             // save json as nsdictionnary
-            NSData *data = [jsonstr dataUsingEncoding:NSUTF8StringEncoding];
-            tweetEntity.infos = removeNull([NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil]);
-
-            
-            // save
-            if (![moc save:&error])
-            {
-                NSLog(@"Error saving Tweet %@ , %@",error,error.userInfo);
-            }
+            //NSData *data = [jsonstr dataUsingEncoding:NSUTF8StringEncoding];
+            //tweetEntity.infos = removeNull([NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil]);
         }
         else
         {
             NSLog(@"Error create JSON Frow Tweet %@ , %@",error,error.userInfo);
         }
+    }
+    
+    // save
+    if (![moc save:&error])
+    {
+        NSLog(@"Error saving Tweet %@ , %@",error,error.userInfo);
     }
     
     
@@ -266,30 +259,34 @@ return cell;
             
             [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
             
-            NSMutableArray *newTweets;
+            id twitterCallBack;
+            __block NSMutableArray *newTweets = nil;
             //NSMutableArray *moreTweets;
             
             if (beforeID == nil && sinceID == nil) // timeline for the first time
             {
-                newTweets = [self.twitterEngine getHomeTimelineBeforeID:beforeID count:50];
+                twitterCallBack = [self.twitterEngine getHomeTimelineBeforeID:beforeID count:50];
                 
             }
             else if (sinceID != nil) // add new tweets
             {
-                newTweets = [self.twitterEngine getHomeTimelineSinceID:sinceID count:50];
+                twitterCallBack = [self.twitterEngine getHomeTimelineSinceID:sinceID count:50];
                 //[self _saveTweetsinArray:beforeTweets];
             }
             else if (beforeID != nil) // old tweets
             {
-                newTweets = [[self.twitterEngine getHomeTimelineBeforeID:beforeID count:5] mutableCopy];
+                twitterCallBack = [self.twitterEngine getHomeTimelineBeforeID:beforeID count:5];
                 // remove first object because of incluse request, last tweet included
-                if (newTweets.count > 1) [newTweets removeObjectAtIndex:0];
-                //[self _saveTweetsinArray:moreTweets];
+                if ([twitterCallBack isKindOfClass: [NSDictionary class]])
+                {
+                    newTweets = [twitterCallBack mutableCopy];
+                    if (newTweets.count > 1) [newTweets removeObjectAtIndex:0];
+                }
             }
             
             dispatch_sync(GCDMainThread, ^{
                 @autoreleasepool
-                {                    
+                {
                     /*if (beforeTweets && beforeTweets.count > 0)
                     {
                         [self.tableView beginUpdates];
@@ -318,23 +315,35 @@ return cell;
                         [self.tableView endUpdates];
                     }*/
                     
-                    [self _saveTweetsinArray:newTweets];
-                    
-                    if (_hasCache == NO)
+                    if ([twitterCallBack isKindOfClass: [NSError class]])
                     {
-                        _hasCache = YES;
-                        [self.tableView reloadData];
+                        [SVProgressHUD showSuccessWithStatus:@"Failed !"];
+                        NSError *error = twitterCallBack;
+                        NSLog(@"Fetching Tweets failed %@, %@", error.description, error.userInfo );
+                    }
+                    else
+                    {
+                        newTweets = twitterCallBack;
+                        
+                        [self _saveTweetsinArray:newTweets];
+                        
+                        if (_hasCache == NO)
+                        {
+                            _hasCache = YES;
+                            [self.tableView reloadData];
+                        }
+                        
+                        [self _loadAuthorImageForVisibleRows];
+                        
+                        [self _getOldestTweetID];
+                        [self _getNewestTweetID];
+                        
+                        [SVProgressHUD showSuccessWithStatus:@"Done !"];
                     }
                     
-                    [self _loadAuthorImageForVisibleRows];
-                    
-                    [self _getOldestTweetID];
-                    [self _getNewestTweetID];
-                    
-                    [SVProgressHUD showSuccessWithStatus:@"Done !"];
                     [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
                     self._isFetchingTweets = NO;
-                    self.tableView.contentInset = UIEdgeInsetsZero;
+                    //self.tableView.contentInset = UIEdgeInsetsZero;
                     [_spinner stopAnimating];
                 }
             });
@@ -404,51 +413,54 @@ return cell;
             UIImageView *authorImageView = (UIImageView*)[cell viewWithTag:1];
             
             NSString *imageUrl = [[tweet.infos objectForKey:@"user"] objectForKey:@"profile_image_url"];
-            NSString *extension = [@"." stringByAppendingString:[imageUrl pathExtension]];
-            NSString *authorID = [[tweet.infos objectForKey:@"user"] objectForKey:@"id_str"];
-            NSString *path = [[NSTemporaryDirectory() stringByAppendingPathComponent:authorID] stringByAppendingString:extension];
-            
-            // ram
-            NSData *data = [imageCache objectForKey:authorID];
-            if (data != nil)
+            if (imageUrl != nil)
             {
-                authorImageView.image = [UIImage imageWithData:data];
-                continue;
-            }
-            
-            // disk
-            if ( [[NSFileManager defaultManager] fileExistsAtPath: path] )
-            {
-                // put in nscache
-                NSData *data = [NSData dataWithContentsOfFile:path];
-                [imageCache setObject:data forKey:authorID];
-                // add image
-                authorImageView.image = [UIImage imageWithData:data];
-                continue;
-            }
-            
-            // load
-            dispatch_async(GCDBackgroundThread, ^{
-                @autoreleasepool
+                NSString *extension = [@"." stringByAppendingString:[imageUrl pathExtension]];
+                NSString *authorID = [[tweet.infos objectForKey:@"user"] objectForKey:@"id_str"];
+                NSString *path = [[NSTemporaryDirectory() stringByAppendingPathComponent:authorID] stringByAppendingString:extension];
+                
+                // ram
+                NSData *data = [imageCache objectForKey:authorID];
+                if (data != nil)
                 {
-                    NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:imageUrl]];
-            
-                    dispatch_sync(GCDMainThread, ^{
-                        @autoreleasepool
-                        {
-                            // disk + cache image
-                            if (data != nil)
-                            {
-                                [data writeToFile:path atomically:NO];
-                                
-                                [imageCache setObject:data forKey:authorID];
-                                // add image
-                                authorImageView.image = [UIImage imageWithData:data];
-                            }
-                        }
-                    });
+                    authorImageView.image = [UIImage imageWithData:data];
+                    continue;
                 }
-            });
+                
+                // disk
+                if ( [[NSFileManager defaultManager] fileExistsAtPath: path] )
+                {
+                    // put in nscache
+                    NSData *data = [NSData dataWithContentsOfFile:path];
+                    [imageCache setObject:data forKey:authorID];
+                    // add image
+                    authorImageView.image = [UIImage imageWithData:data];
+                    continue;
+                }
+                
+                // load
+                dispatch_async(GCDBackgroundThread, ^{
+                    @autoreleasepool
+                    {
+                        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:imageUrl]];
+                        
+                        dispatch_sync(GCDMainThread, ^{
+                            @autoreleasepool
+                            {
+                                // disk + cache image
+                                if (data != nil)
+                                {
+                                    [data writeToFile:path atomically:NO];
+                                    
+                                    [imageCache setObject:data forKey:authorID];
+                                    // add image
+                                    authorImageView.image = [UIImage imageWithData:data];
+                                }
+                            }
+                        });
+                    }
+                });
+            }
         }
     }
 }

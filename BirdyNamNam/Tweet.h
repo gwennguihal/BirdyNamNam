@@ -12,8 +12,8 @@
 
 @interface Tweet : NSManagedObject
 
-@property (nonatomic, retain) NSString * tweetid;
-@property (nonatomic, retain) NSString * json;
-@property (nonatomic, strong) NSDictionary *infos;
+@property (nonatomic, strong) NSString * tweetid;
+@property (nonatomic, strong) NSString * json;
+@property (nonatomic, strong, readonly) NSDictionary *infos;
 
 @end

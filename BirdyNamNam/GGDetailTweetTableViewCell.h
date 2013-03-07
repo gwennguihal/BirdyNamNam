@@ -16,4 +16,7 @@
 @property (strong,nonatomic) IBOutlet UILabel *dateLabel;
 @property (strong,nonatomic) IBOutlet UIImageView *authorImageView;
 
++ (int)CellOffsetY;
++ (int)TextLabelWidth;
+
 @end
