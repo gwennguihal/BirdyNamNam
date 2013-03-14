@@ -12,6 +12,8 @@
     #import <UIKit/UIKit.h>
     #import <Foundation/Foundation.h>
     #import <CoreData/CoreData.h>
+    #import <MobileCoreServices/UTCoreTypes.h>
+    #import <QuartzCore/QuartzCore.h>
     #import "FHSTwitterEngine.h"
 
     #define twiterConsumerKey "xsfjwr59921N5hxt6pkFA"

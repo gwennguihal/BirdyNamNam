@@ -498,6 +498,19 @@ static FHSTwitterEngine *instance = nil;
     return [self sendGETRequest:request withParameters:[NSArray arrayWithObjects:includeMyRetweet, identifierP, nil]];
 }
 
+- (id)getDiscussionForTweet:(NSString *)identifier {
+    
+    if (identifier.length == 0) {
+        return [NSError errorWithDomain:@"Bad Request: The request you are trying to make is missing parameters." code:400 userInfo:nil];
+    }
+    
+    NSURL *baseURL = [NSURL URLWithString:@"https://api.twitter.com/1/related_results/show.json"];
+    OAMutableURLRequest *request = [[OAMutableURLRequest alloc]initWithURL:baseURL consumer:self.consumer token:self.accessToken realm:nil signatureProvider:nil];
+    OARequestParameter *identifierP = [OARequestParameter requestParameterWithName:@"id" value:identifier];
+    OARequestParameter *includeMyRetweet = [OARequestParameter requestParameterWithName:@"include_my_retweet" value:@"true"];
+    return [self sendGETRequest:request withParameters:[NSArray arrayWithObjects:includeMyRetweet, identifierP, nil]];
+}
+
 - (id)oembedTweet:(NSString *)identifier maxWidth:(float)maxWidth alignmentMode:(FHSTwitterEngineAlignMode)alignmentMode {
     
     if (identifier.length == 0) {
@@ -1583,11 +1596,12 @@ static FHSTwitterEngine *instance = nil;
         return nil;
     }
     
-    NSMutableArray *usernames = [NSMutableArray array];
+    NSMutableArray *users = [NSMutableArray array];
     
     NSArray *usernameListStrings = [self generateRequestURLSForIDs:identifiersFromRequest];
     
-    for (NSString *idListString in usernameListStrings) {
+    for (NSString *idListString in usernameListStrings)
+    {
         baseURL = [NSURL URLWithString:@"https://api.twitter.com/1.1/users/lookup.json"];
         
         OARequestParameter *iden = [OARequestParameter requestParameterWithName:@"user_id" value:idListString];
@@ -1598,15 +1612,24 @@ static FHSTwitterEngine *instance = nil;
         id parsed = [self sendGETRequest:requestTwo withParameters:[NSArray arrayWithObjects:iden, includeEntities, nil]];
         
         if ([parsed isKindOfClass:[NSDictionary class]]) {
-            [usernames addObject:[parsed objectForKey:@"screen_name"]];
+            [users addObject:parsed];
         } else if ([parsed isKindOfClass:[NSArray class]]) {
             for (NSDictionary *dict in (NSArray *)parsed) {
-                [usernames addObject:[dict objectForKey:@"screen_name"]];
+                [users addObject:dict];
             }
         }
     }
     
-    return [usernames sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+    return users;
+}
+
+-(id)getFriendsList
+{
+    NSURL *baseURL = [NSURL URLWithString:@"https://api.twitter.com/1.1/friends/list.json"];
+    
+    OAMutableURLRequest *request = [[OAMutableURLRequest alloc]initWithURL:baseURL consumer:self.consumer token:self.accessToken realm:nil signatureProvider:nil];
+    
+    return [self sendGETRequest:request withParameters:@[]];
 }
 
 - (NSError *)postTweet:(NSString *)tweetString inReplyTo:(NSString *)inReplyToString {

@@ -93,6 +93,7 @@ id removeNull(id rootObject);
 
 - (NSArray *)getFollowers; // followers/ids & users/lookup
 - (NSArray *)getFriends; // friends/ids & users/lookup
+- (id)getFriendsList;
 
 //
 // Standard REST API methods
@@ -247,6 +248,9 @@ id removeNull(id rootObject);
 
 // statuses/show
 - (id)getDetailsForTweet:(NSString *)identifier;
+
+// related
+- (id)getDiscussionForTweet:(NSString *)identifier;
 
 // statuses/destory
 - (NSError *)destoryTweet:(NSString *)identifier;

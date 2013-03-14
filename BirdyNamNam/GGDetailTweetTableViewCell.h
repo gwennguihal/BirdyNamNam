@@ -16,6 +16,16 @@
 @property (strong,nonatomic) IBOutlet UILabel *dateLabel;
 @property (strong,nonatomic) IBOutlet UIImageView *authorImageView;
 
+@property (strong,nonatomic) IBOutlet UIButton *replyBtn;
+@property (strong,nonatomic) IBOutlet UIButton *retweetBtn;
+@property (strong,nonatomic) IBOutlet UIButton *favoriteBtn;
+
+@property (strong,nonatomic) IBOutlet UIView *buttonsContainer;
+
+-(IBAction)reply:(id)sender;
+-(IBAction)retweet:(id)sender;
+-(IBAction)favorite:(id)sender;
+
 + (int)CellOffsetY;
 + (int)TextLabelWidth;
 
