@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model name="" userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="2057" systemVersion="11G63" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="Friend" representedClassName="Friend" syncable="YES">
+        <attribute name="friendid" attributeType="String" indexed="YES" syncable="YES"/>
+        <attribute name="friendname" attributeType="String" syncable="YES"/>
+        <attribute name="friendprofileimageurl" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="friendscreenname" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
     <entity name="Tweet" representedClassName="Tweet" syncable="YES">
         <attribute name="json" attributeType="String" storedInTruthFile="YES" syncable="YES"/>
         <attribute name="tweetid" attributeType="String" indexed="YES" syncable="YES"/>
     </entity>
     <elements>
-        <element name="Tweet" positionX="-45" positionY="-9" width="128" height="75"/>
+        <element name="Tweet" positionX="126" positionY="-90" width="128" height="75"/>
+        <element name="Friend" positionX="-45" positionY="-90" width="128" height="105"/>
     </elements>
 </model>

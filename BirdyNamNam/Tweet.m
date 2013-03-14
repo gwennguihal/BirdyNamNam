@@ -34,7 +34,6 @@
 {
     if (_infos == nil)
     {
-        NSLog(@"id %@",self.tweetid);
         [self willAccessValueForKey:@"json"];
         NSData *data = [self.json dataUsingEncoding:NSUTF8StringEncoding];
         _infos = removeNull([NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil]);
