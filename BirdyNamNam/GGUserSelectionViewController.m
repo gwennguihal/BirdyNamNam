@@ -11,11 +11,14 @@
 
 @interface GGUserSelectionViewController ()
 
+@property (strong,nonatomic) NSCache *imageCache;
+@property (copy) DidSelectFriendBlock _selectionFriendBlock;
+
 @end
 
 @implementation GGUserSelectionViewController
 
-@synthesize moc;
+@synthesize moc, imageCache, _selectionFriendBlock;
 
 - (id)initWithStyle:(UITableViewStyle)style andManagedObjectContext:(NSManagedObjectContext*) managedObjectContext
 {
@@ -25,7 +28,8 @@
         self.moc = managedObjectContext;
         [self.tableView registerNib:[UINib nibWithNibName:@"UserCellView" bundle:[NSBundle mainBundle]] forCellReuseIdentifier:@"UserTweetCell2"];
         
-        self.tableView.frame = CGRectMake(20, 49, 320 - 20*2, 100);
+        self.tableView.frame = CGRectMake(20, 49, 320 - 20*2, 150);
+        self.tableView.backgroundColor = [UIColor whiteColor];
         self.tableView.layer.borderColor = [UIColor blackColor].CGColor;
         self.tableView.layer.borderWidth = 1.0f;
         self.tableView.layer.cornerRadius = 8.0;
@@ -33,30 +37,41 @@
         self.tableView.layer.shadowOpacity = 0.7;
         self.tableView.layer.shadowOffset = CGSizeMake(2.0, 2.0);
         self.tableView.layer.shadowRadius = 3.0;
-        //self.tableView.layer.masksToBounds = NO;
     }
     return self;
 }
 
-- (void)searchWithName:(NSString *)name
+- (void)setYPosition:(int)y
+{
+    CGRect frame = self.tableView.frame;
+    frame.origin.y = y;
+    self.tableView.frame = frame;
+}
+
+- (BOOL)searchWithName:(NSString *)name
 {
     NSError *error;
     NSFetchRequest *request = [NSFetchRequest fetchRequestWithEntityName:@"Friend"];
-    request.predicate = [NSPredicate predicateWithFormat:@"(friendname CONTAINS[cd] %@) OR (friendscreenname CONTAINS[cd] %@)", name, name];
+    if (name.length > 0)
+    {
+        request.predicate = [NSPredicate predicateWithFormat:@"(friendname CONTAINS[cd] %@) OR (friendscreenname CONTAINS[cd] %@)", name, name];
+    }
     NSArray *search = [self.moc executeFetchRequest:request error:&error];
     if (search == nil)
     {
         NSLog(@"Fetching Friend failed %@, %@", error.description, error.userInfo );
+        return NO;
     }
     if (search.count > 0)
     {
-        NSLog(@"update friend");
         self.friends = [search mutableCopy];
         [self.tableView reloadData];
+        [self _loadAuthorImageForVisibleRows];
+        return YES;
     }
     else
     {
-        NSLog(@"new friend");
+        return NO;
     }
 }
 
@@ -69,7 +84,11 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    imageCache = [[NSCache alloc] init];
+    
     [self.tableView reloadData];
+    [self _loadAuthorImageForVisibleRows];
 }
 
 - (void)didReceiveMemoryWarning
@@ -105,7 +124,7 @@
     cell.textLabel.text = friend.friendname;
     cell.detailTextLabel.text = friend.friendscreenname;
     
-    /*dispatch_async(GCDBackgroundThread, ^{
+    dispatch_async(GCDBackgroundThread, ^{
         @autoreleasepool {
             NSData *data = [imageCache objectForKey:friend.friendid];
             
@@ -121,23 +140,101 @@
                         cell.imageView.image = [UIImage imageNamed:@"Placeholder.png"];
                     }
                 }});
-        }});*/
+        }});
     
     return cell;
+}
+
+- (void)_loadAuthorImageForVisibleRows
+{
+    if (self.friends.count > 0)
+    {
+        NSArray *visiblePaths = [self.tableView indexPathsForVisibleRows];
+        
+        for (NSIndexPath *indexPath in visiblePaths)
+        {
+            if (indexPath.row >= self.friends.count) return;
+            
+            Friend *friend = [self.friends objectAtIndex:indexPath.row];
+            
+            UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+            
+            NSString *imageUrl = friend.friendprofileimageurl;
+            if (imageUrl != nil)
+            {
+                NSString *extension = [@"." stringByAppendingString:[imageUrl pathExtension]];
+                NSString *authorID = friend.friendid;
+                NSString *path = [[NSTemporaryDirectory() stringByAppendingPathComponent:authorID] stringByAppendingString:extension];
+                
+                // ram
+                NSData *data = [imageCache objectForKey:authorID];
+                if (data != nil)
+                {
+                    cell.imageView.image = [UIImage imageWithData:data];
+                    continue;
+                }
+                
+                // disk
+                if ( [[NSFileManager defaultManager] fileExistsAtPath: path] )
+                {
+                    // put in nscache
+                    NSData *data = [NSData dataWithContentsOfFile:path];
+                    [imageCache setObject:data forKey:authorID];
+                    // add image
+                    cell.imageView.image = [UIImage imageWithData:data];
+                    continue;
+                }
+                
+                // load
+                dispatch_async(GCDBackgroundThread, ^{
+                    @autoreleasepool
+                    {
+                        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:imageUrl]];
+                        
+                        dispatch_sync(GCDMainThread, ^{
+                            @autoreleasepool
+                            {
+                                // disk + cache image
+                                if (data != nil)
+                                {
+                                    [data writeToFile:path atomically:NO];
+                                    
+                                    [imageCache setObject:data forKey:authorID];
+                                    // add image
+                                    cell.imageView.image = [UIImage imageWithData:data];
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    }
+}
+
+- (void)setSelectionFriendHandler:(DidSelectFriendBlock)handler
+{
+    self._selectionFriendBlock = handler;
+}
+
+
+#pragma mark - ScrollView delegate
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    [self _loadAuthorImageForVisibleRows];
 }
 
 #pragma mark - Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    // Navigation logic may go here. Create and push another view controller.
-    /*
-     <#DetailViewController#> *detailViewController = [[<#DetailViewController#> alloc] initWithNibName:@"<#Nib name#>" bundle:nil];
-     // ...
-     // Pass the selected object to the new view controller.
-     [self.navigationController pushViewController:detailViewController animated:YES];
-     */
-    NSLog(@"Texte : %@",[tableView cellForRowAtIndexPath:indexPath].textLabel.text);
+    Friend *friend = [self.friends objectAtIndex:indexPath.row];
+    if (friend)
+    {
+        // call back block
+        self._selectionFriendBlock(friend.friendscreenname);
+    }
 }
 
 @end

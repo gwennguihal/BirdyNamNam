@@ -8,11 +8,19 @@
 
 #import <UIKit/UIKit.h>
 
+typedef void (^DidTapOnHashtagBlock)();
+
+@interface UITouchesTextView : UITextView
+
+-(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void) setHashtagTapHandler:(DidTapOnHashtagBlock)handler;
+@end
+
 @interface GGDetailTweetTableViewCell : UITableViewCell
 
 @property (strong,nonatomic) IBOutlet UILabel *authorNameLabel;
 @property (strong,nonatomic) IBOutlet UILabel *authorScreenNameLabel;
-@property (strong,nonatomic) IBOutlet UILabel *textLabel;
+@property (strong,nonatomic) IBOutlet UITouchesTextView *textView;
 @property (strong,nonatomic) IBOutlet UILabel *dateLabel;
 @property (strong,nonatomic) IBOutlet UIImageView *authorImageView;
 

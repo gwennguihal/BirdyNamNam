@@ -97,7 +97,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *CellIdentifier = @"DetailTweetCell";
-    GGDetailTweetTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
+    GGDetailTweetTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     
     if (cell == nil)
     {
@@ -119,12 +119,56 @@
     cell.authorNameLabel.text = authorName;
     cell.authorScreenNameLabel.text = authorScreenName;
     
-    cell.textLabel.font = [UIFont systemFontOfSize:14.0];
-    cell.textLabel.text = text;
-    [cell.textLabel sizeToFitFixedWidth];
+    // match twitter users
+    NSError *error = nil;
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"([@|#]\\w+)" options:NSRegularExpressionCaseInsensitive error:&error];
+    //NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"((@|#)\\w+)|(http://)" options:NSRegularExpressionCaseInsensitive error:&error];
+    NSArray *matches = [regex matchesInString:text options:0 range:NSMakeRange(0, text.length)];
     
-    // format from json
-    // "Wed Mar 06 17:01:41 +0000 2013"
+    NSMutableAttributedString *string = [[NSMutableAttributedString alloc] initWithString:text];
+    //string addAttribute:<#(NSString *)#> value:<#(id)#> range:<#(NSRange)#>
+    
+    cell.textView.font = [UIFont systemFontOfSize:14.0];
+    cell.textView.attributedText = string;
+    
+    [cell.textView setHashtagTapHandler:^{
+        [self performSegueWithIdentifier:@"hashtagSegue" sender:self];
+    }];
+    
+    for (NSTextCheckingResult *match in matches)
+    {
+        NSRange wordRange = match.range;
+        [string addAttribute:NSForegroundColorAttributeName
+                       value:[UIColor redColor]
+                       range:wordRange];
+        
+        NSString *word = [text substringWithRange:wordRange];
+        
+        CGRect frame = [self frameOfTextRange:wordRange inTextView:cell.textView];
+        
+        NSLog(@"frame %@",NSStringFromCGRect(frame));
+        
+        // add a layer
+        CALayer *tapLayer = [[CALayer alloc] init];
+        tapLayer.anchorPoint = CGPointZero;
+        tapLayer.frame = frame;
+        tapLayer.backgroundColor = [UIColor blueColor].CGColor;
+        tapLayer.opacity = 0.2f;
+        
+        [cell.textView.layer addSublayer:tapLayer];
+    }
+    cell.textView.attributedText = string;
+    
+    
+    /*UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(singleTapRecognized:)];
+    singleTap.numberOfTapsRequired = 1;
+    [cell.textView addGestureRecognizer:singleTap];*/
+    
+    //[cell.textView becomeFirstResponder];
+    
+    CGRect frame = cell.textView.frame;
+    frame.size.height = cell.textView.contentSize.height;
+    cell.textView.frame = frame;
     
     NSString *dateString = [_tweet.infos objectForKey:@"created_at"];
     
@@ -161,15 +205,20 @@
     }
 }
 
+- (CGRect)frameOfTextRange:(NSRange)range inTextView:(UITextView *)textView
+{
+    UITextPosition *beginning = textView.beginningOfDocument;
+    UITextPosition *start = [textView positionFromPosition:beginning offset:range.location];
+    UITextPosition *end = [textView positionFromPosition:beginning offset:(range.location + range.length)];
+    UITextRange *textRange = [textView textRangeFromPosition:start toPosition:end];
+    return [textView firstRectForRange:textRange];
+}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    
-    NSLog(@"widdth %d",[GGDetailTweetTableViewCell TextLabelWidth]);
-    
     NSString *text = [_tweet.infos objectForKey:@"text"];
-    CGSize textSize = [text sizeWithFont:[UIFont systemFontOfSize:12] constrainedToSize: CGSizeMake( [GGDetailTweetTableViewCell TextLabelWidth] ,CGFLOAT_MAX )];
+    CGSize textSize = [text sizeWithFont:[UIFont systemFontOfSize:14.0] constrainedToSize: CGSizeMake( [GGDetailTweetTableViewCell TextLabelWidth] ,CGFLOAT_MAX )];
     
-    //return MAX(textSize.height + [GGDetailTweetTableViewCell CellOffsetY],tableView.rowHeight);
     return textSize.height + [GGDetailTweetTableViewCell CellOffsetY];
 }
 

@@ -140,7 +140,7 @@
     }
     
     static NSString *CellIdentifier = @"TweetCell";
-    cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
+    cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     if (cell == nil)
     {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
@@ -153,9 +153,7 @@
 }
 
 - (void)configureCell:(UITableViewCell *)cell cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    NSLog(@"indexPath %d",indexPath.row);
-    
+{   
     Tweet *tweet = [self.fetcher objectAtIndexPath:indexPath];
     
     NSString *text = [tweet.infos objectForKey:@"text"];

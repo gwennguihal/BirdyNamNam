@@ -9,33 +9,31 @@
 #import "GGReplyViewController.h"
 #import "GGUserSelectionViewController.h"
 
-@interface GGReplyViewController ()
+#define kTextFieldPaddingTop 8.0f
+#define kFriendSelectorMarginTop 20.0f
 
-@property UIView *shadowView;
+@interface GGReplyViewController ()
+{
+    BOOL _friendSelectorDisplayed;
+
+    int _contentOffsetYBeforeFriendSelector;
+}
+
+@property CALayer *shadowLayer;
 @property UIImageView *imageVIew;
+@property int _arobasePosition;
 
 @end
 
 @implementation GGReplyViewController
 
-@synthesize shadowView, imageVIew, moc, friendSelector;
-
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-    if (self) {
-        // Custom initialization
-    }
-    return self;
-}
+@synthesize shadowLayer, imageVIew, moc, friendSelector, _arobasePosition;
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     
-    [self _customize];
-    
-    //[self putView:self.textField insideShadowWithColor:[UIColor grayColor] andRadius:8.0 andOffset:CGSizeMake(2.0, 2.0) andOpacity:0.8];
+    _friendSelectorDisplayed = NO;
     
     [self _registerForKeyboardNotifications];
 
@@ -59,18 +57,32 @@
 {
     self.textField.layer.cornerRadius = 8.0;
     
-    shadowView = [[UIView alloc] initWithFrame:self.textField.frame];
-    shadowView.layer.masksToBounds = YES;
-    shadowView.layer.borderColor = [UIColor lightGrayColor].CGColor;
-    shadowView.layer.borderWidth =1.5f;
-    shadowView.layer.cornerRadius = 8.0;
-    shadowView.layer.shadowColor = [UIColor blackColor].CGColor;
-    shadowView.layer.shadowOpacity = 0.7;
-    shadowView.layer.shadowOffset = CGSizeMake(2.0, 2.0);
-    shadowView.layer.shadowRadius = 3.0;
-    shadowView.userInteractionEnabled = NO;
+    self.shadowLayer = [[CALayer alloc] init];
     
-    [self.view insertSubview:shadowView aboveSubview:self.textField];
+    [CATransaction begin];
+    
+    self.shadowLayer.frame = self.textField.frame;
+    self.shadowLayer.borderColor = [UIColor lightGrayColor].CGColor;
+    self.shadowLayer.borderWidth =1.5f;
+    self.shadowLayer.cornerRadius = self.textField.layer.cornerRadius;
+    self.shadowLayer.shadowColor = [UIColor blackColor].CGColor;
+    self.shadowLayer.shadowOpacity = 0.7;
+    self.shadowLayer.shadowOffset = CGSizeMake(2.0, 2.0);
+    self.shadowLayer.shadowRadius = 3.0;
+    
+    CALayer *maskLayer = [[CALayer alloc] init];
+    maskLayer.anchorPoint = CGPointZero;
+    maskLayer.bounds = self.textField.bounds;
+    maskLayer.backgroundColor = [UIColor blackColor].CGColor;
+    CGMutablePathRef path = CGPathCreateMutable();
+    CGPathAddRect(path, NULL, self.textField.bounds);
+    maskLayer.cornerRadius = 8.0;
+    
+    [self.shadowLayer setMask:maskLayer];
+    
+    [CATransaction commit];
+    
+    [self.view.layer insertSublayer:self.shadowLayer above:self.textField.layer];
 }
 
 -(void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
@@ -86,9 +98,10 @@
         if([object valueForKeyPath:keyPath] != [NSNull null])
         {
             newFrame = [[object valueForKeyPath:keyPath] CGRectValue];
-            newFrame = self.shadowView.frame;
+            newFrame = self.shadowLayer.frame;
             newFrame.size.height = [[object valueForKeyPath:keyPath] CGRectValue].size.height;
-            self.shadowView.frame = newFrame;
+            self.shadowLayer.frame = newFrame;
+            self.shadowLayer.mask.bounds = self.shadowLayer.bounds;
         }
     }
 }
@@ -109,67 +122,32 @@
 - (void)keyBoardWillShow:(NSNotification*)aNotification
 {
     NSDictionary* info = [aNotification userInfo];
-    //double duration = [[info objectForKey:UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
     
     CGRect newControlBarFrame = self.controlBar.frame;
     newControlBarFrame.origin.y = self.view.frame.size.height - kbSize.height - self.controlBar.frame.size.height;
     self.controlBar.frame = newControlBarFrame;
     
-    /*[UIView animateWithDuration:duration animations:^{
-        self.controlBar.frame = newControlBarFrame;
-    }];*/
-}
-
-- (void)keyboardWasShown:(NSNotification*)aNotification
-{
-    NSDictionary* info = [aNotification userInfo];
-    CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
-    
-    
     CGRect newTextFieldFrame = self.textField.frame;
     newTextFieldFrame.size.height = self.view.frame.size.height - self.navBar.frame.size.height - kbSize.height - self.controlBar.frame.size.height - 10;
     self.textField.frame = newTextFieldFrame;
     
-    /*UIEdgeInsets contentInsets = UIEdgeInsetsMake(0.0, 0.0, kbSize.height, 0.0);
-    scrollView.contentInset = contentInsets;
-    scrollView.scrollIndicatorInsets = contentInsets;
-    
-    // If active text field is hidden by keyboard, scroll it so it's visible
-    // Your application might not need or want this behavior.
-    CGRect aRect = self.view.frame;
-    aRect.size.height -= kbSize.height;
-    if (!CGRectContainsPoint(aRect, activeField.frame.origin) ) {
-        CGPoint scrollPoint = CGPointMake(0.0, activeField.frame.origin.y-kbSize.height);
-        [scrollView setContentOffset:scrollPoint animated:YES];
-    }*/
+    [self _customize];
 }
 
-- (void)textViewDidChange:(UITextView *)textView
+- (void)keyboardWasShown:(NSNotification*)aNotification
 {
-    int count = 160 - self.textField.text.length;
-    self.charactersCountLabel.text = [NSString stringWithFormat:@"%d",count];
+    /*NSDictionary* info = [aNotification userInfo];
+    CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
     
-    self.validBtn.enabled = count > 0;
-    
-    NSRange range = textView.selectedRange;
-    range.location -= 1;
-    range.length = 1;
-    NSString *lastCharacter = [textView.text substringWithRange:range];
-    if ([lastCharacter isEqualToString:@"@"])
-    {
-        GGUserSelectionViewController *userSelectionViewController = [[GGUserSelectionViewController alloc] initWithStyle:UITableViewStylePlain andManagedObjectContext:self.moc];
-        [self.view addSubview: userSelectionViewController.tableView];
-        [userSelectionViewController searchWithName:@"fe"];
-    }
-    
-    
+    CGRect newTextFieldFrame = self.textField.frame;
+    newTextFieldFrame.size.height = self.view.frame.size.height - self.navBar.frame.size.height - kbSize.height - self.controlBar.frame.size.height - 10;
+    self.textField.frame = newTextFieldFrame;*/
 }
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 - (IBAction)cancel:(id)sender
@@ -192,16 +170,95 @@
     [self startMediaBrowserFromViewController:self usingDelegate:self];
 }
 
+- (void)textViewDidChange:(UITextView *)textView
+{
+    // characters count
+    int count = 160 - self.textField.text.length;
+    self.charactersCountLabel.text = [NSString stringWithFormat:@"%d",count];
+    self.validBtn.enabled = count > 0;
+    
+    // arobase type
+    NSRange range = textView.selectedRange;
+    range.location -= 1;
+    range.length = 1;
+    NSString *lastCharacter = [textView.text substringWithRange:range];
+    if ( [lastCharacter isEqualToString:@"@"])
+    {
+        [self _arobaseHandler];
+    }
+    
+    // friend selector
+    if (_friendSelectorDisplayed)
+    {
+        if (self._arobasePosition > textView.text.length)
+        {
+            [self _removeFriendSelector];
+            return;
+        }
+        
+        range = textView.selectedRange;
+        range.length = range.location - self._arobasePosition;
+        range.location = self._arobasePosition;
+        NSString *friendCharacters = [textView.text substringWithRange:range];
+        if (![friendSelector searchWithName:friendCharacters])
+        {
+            [self _removeFriendSelector];
+        }
+    }
+}
+
 - (IBAction)addArobase:(id)sender
 {
-    //[self.textField.text str
     [self insertString:@"@" intoTextView:self.textField];
-    /*friendSelector = [[GGUserSelectionViewController alloc] initWithStyle:UITableViewStylePlain andManagedObjectContext:self.moc];
-    [self.view addSubview: friendSelector.tableView];
-    //[self.view bringSubviewToFront:friendSelector.tableView];
-    [friendSelector searchWithName:@"fe"];*/
-    CGPoint cursorPosition = [self.textField caretRectForPosition:self.textField.selectedTextRange.start].origin;
-    [self.textField setContentOffset:CGPointMake(0, cursorPosition.y) animated:YES];
+    [self _arobaseHandler];
+}
+
+- (void) _removeFriendSelector
+{
+    // kill friend selector
+    [friendSelector.tableView removeFromSuperview];
+    _friendSelectorDisplayed = NO;
+    friendSelector = nil;
+    
+    // set textview good
+    self.textField.scrollEnabled = YES;
+    [self.textField setContentOffset:CGPointMake(0, 0) animated:YES];
+}
+
+- (void) _arobaseHandler
+{
+    // add friends selector
+    if (friendSelector == nil)
+    {
+        friendSelector = [[GGUserSelectionViewController alloc] initWithStyle:UITableViewStylePlain andManagedObjectContext:self.moc];
+        GGReplyViewController * __weak weakSelf = self;
+        [friendSelector setSelectionFriendHandler:^(NSString *friendScreenName) {
+            NSLog(@"%@ %@",friendScreenName,[weakSelf.textField.text substringFromIndex:weakSelf._arobasePosition]);
+            // replace friendname with name returned by friendSelector
+            NSRange range = weakSelf.textField.selectedRange;
+            range.length = range.location - weakSelf._arobasePosition;
+            range.location = weakSelf._arobasePosition;
+            
+            [weakSelf replaceString:friendScreenName intoTextView:weakSelf.textField atRange:range];
+            
+            [weakSelf _removeFriendSelector];
+        }];
+    }
+    if ([friendSelector searchWithName:@""])
+    {
+        // scroll textview
+        CGPoint cursorPosition = [self.textField caretRectForPosition:self.textField.selectedTextRange.start].origin;
+        [self.textField setContentOffset:CGPointMake(0, cursorPosition.y - kTextFieldPaddingTop) animated:YES];
+        
+        [self.view addSubview: friendSelector.tableView];
+        [self.view bringSubviewToFront:friendSelector.tableView];
+        [self.friendSelector setYPosition: self.textField.frame.origin.y + kTextFieldPaddingTop + kFriendSelectorMarginTop];
+        _friendSelectorDisplayed = YES;
+        self._arobasePosition = self.textField.selectedRange.location;
+    }
+    
+    CGRect frame = self.textField.frame;
+    frame.size.height = kTextFieldPaddingTop + kFriendSelectorMarginTop -1;
 }
 
 - (void) insertString: (NSString *) insertingString intoTextView: (UITextView *) textView
@@ -219,6 +276,22 @@
     textView.selectedRange = range;
     textView.scrollEnabled = YES;  // turn scrolling back on.
     
+}
+
+- (void) replaceString: (NSString *) insertingString intoTextView: (UITextView *) textView atRange: (NSRange) range
+{
+    NSString * firstHalfString = [textView.text substringToIndex:range.location];
+    NSString * secondHalfString = [textView.text substringFromIndex: range.location + range.length];
+    textView.scrollEnabled = NO;  // turn off scrolling or you'll get dizzy ... I promise
+    
+    textView.text = [NSString stringWithFormat: @"%@%@%@",
+                     firstHalfString,
+                     insertingString,
+                     secondHalfString];
+    range.length = 0;
+    range.location += [insertingString length];
+    textView.selectedRange = range;
+    textView.scrollEnabled = YES;  // turn scrolling back on.
 }
 
 - (BOOL) startCameraControllerFromViewController: (UIViewController*) controller usingDelegate: (id <UIImagePickerControllerDelegate, UINavigationControllerDelegate>) delegate

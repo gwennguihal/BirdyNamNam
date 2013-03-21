@@ -54,6 +54,8 @@
 		3587F68116E112E200A95216 /* birdynamnam.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3587F67F16E112E200A95216 /* birdynamnam.xcdatamodeld */; };
 		3594E2B216F0E01E00040300 /* GGUserSelectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3594E2B116F0E01D00040300 /* GGUserSelectionViewController.m */; };
 		3594E2B416F1CB7700040300 /* UserCellView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3594E2B316F1CB7700040300 /* UserCellView.xib */; };
+		35BB865E16F8AFD3003FAD45 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 35BB865D16F8AFD3003FAD45 /* CoreText.framework */; };
+		35BB866116F9C422003FAD45 /* GGTextUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 35BB866016F9C422003FAD45 /* GGTextUtil.m */; };
 		35CD40A416F1D894004FE83A /* GGFriendsListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 35CD40A316F1D894004FE83A /* GGFriendsListViewController.m */; };
 		35CD40A716F1DDCC004FE83A /* Friend.m in Sources */ = {isa = PBXBuildFile; fileRef = 35CD40A616F1DDCC004FE83A /* Friend.m */; };
 /* End PBXBuildFile section */
@@ -141,6 +143,9 @@
 		3594E2B016F0E01D00040300 /* GGUserSelectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GGUserSelectionViewController.h; sourceTree = "<group>"; };
 		3594E2B116F0E01D00040300 /* GGUserSelectionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GGUserSelectionViewController.m; sourceTree = "<group>"; };
 		3594E2B316F1CB7700040300 /* UserCellView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = UserCellView.xib; sourceTree = "<group>"; };
+		35BB865D16F8AFD3003FAD45 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
+		35BB865F16F9C422003FAD45 /* GGTextUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GGTextUtil.h; sourceTree = "<group>"; };
+		35BB866016F9C422003FAD45 /* GGTextUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GGTextUtil.m; sourceTree = "<group>"; };
 		35CD40A216F1D894004FE83A /* GGFriendsListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GGFriendsListViewController.h; sourceTree = "<group>"; };
 		35CD40A316F1D894004FE83A /* GGFriendsListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GGFriendsListViewController.m; sourceTree = "<group>"; };
 		35CD40A516F1DDCC004FE83A /* Friend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Friend.h; sourceTree = "<group>"; };
@@ -152,6 +157,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				35BB865E16F8AFD3003FAD45 /* CoreText.framework in Frameworks */,
 				3587F59116DE08F000A95216 /* QuartzCore.framework in Frameworks */,
 				357E772416EF42C200FE8CDC /* MobileCoreServices.framework in Frameworks */,
 				3587F67E16E1127100A95216 /* CoreData.framework in Frameworks */,
@@ -211,13 +217,14 @@
 		3587F52D16D65B6300A95216 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				357E772316EF42C200FE8CDC /* MobileCoreServices.framework */,
+				3587F58A16DE082900A95216 /* SVProgressHUD */,
 				354D2C9D16E4B0AF00E17F5B /* AFNetworking */,
 				3587F55116D65CAC00A95216 /* FHSTwitterEngine */,
+				35BB865D16F8AFD3003FAD45 /* CoreText.framework */,
+				357E772316EF42C200FE8CDC /* MobileCoreServices.framework */,
 				3587F67D16E1127000A95216 /* CoreData.framework */,
 				3587F59016DE08F000A95216 /* QuartzCore.framework */,
 				3587F57716D65D9000A95216 /* SystemConfiguration.framework */,
-				3587F58A16DE082900A95216 /* SVProgressHUD */,
 				3587F52E16D65B6300A95216 /* UIKit.framework */,
 				3587F53016D65B6300A95216 /* Foundation.framework */,
 				3587F53216D65B6300A95216 /* CoreGraphics.framework */,
@@ -228,29 +235,20 @@
 		3587F53416D65B6300A95216 /* BirdyNamNam */ = {
 			isa = PBXGroup;
 			children = (
-				354D2CBD16E4B59300E17F5B /* Tweet.h */,
-				354D2CBE16E4B59300E17F5B /* Tweet.m */,
+				35CD40A916F87BEF004FE83A /* Model */,
+				35BB865B16F8AD82003FAD45 /* DetailTweet */,
 				3587F53D16D65B6300A95216 /* GGAppDelegate.h */,
 				3587F53E16D65B6300A95216 /* GGAppDelegate.m */,
-				3587F54616D65B6300A95216 /* MainStoryboard.storyboard */,
 				3587F54916D65B6300A95216 /* GGViewController.h */,
 				3587F54A16D65B6300A95216 /* GGViewController.m */,
-				3587F53516D65B6300A95216 /* Supporting Files */,
 				3587F57916D7B2D500A95216 /* GGMenuViewController.h */,
 				3587F57A16D7B2D500A95216 /* GGMenuViewController.m */,
 				3587F57C16D7D7DA00A95216 /* GGTimeLineViewController.h */,
 				3587F57D16D7D7DA00A95216 /* GGTimeLineViewController.m */,
-				354D2CC016E7835800E17F5B /* GGDetailTweetViewController.h */,
-				354D2CC116E7835800E17F5B /* GGDetailTweetViewController.m */,
-				354D2CC316E7ABE700E17F5B /* GGDetailTweetTableViewCell.h */,
-				354D2CC416E7ABE800E17F5B /* GGDetailTweetTableViewCell.m */,
-				3550283F16EE2FB0004771B0 /* GGReplyViewController.h */,
-				3550284016EE2FB0004771B0 /* GGReplyViewController.m */,
-				3594E2B016F0E01D00040300 /* GGUserSelectionViewController.h */,
-				3594E2B116F0E01D00040300 /* GGUserSelectionViewController.m */,
-				3594E2B316F1CB7700040300 /* UserCellView.xib */,
 				35CD40A216F1D894004FE83A /* GGFriendsListViewController.h */,
 				35CD40A316F1D894004FE83A /* GGFriendsListViewController.m */,
+				3587F54616D65B6300A95216 /* MainStoryboard.storyboard */,
+				3587F53516D65B6300A95216 /* Supporting Files */,
 			);
 			path = BirdyNamNam;
 			sourceTree = "<group>";
@@ -258,14 +256,11 @@
 		3587F53516D65B6300A95216 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				3587F67F16E112E200A95216 /* birdynamnam.xcdatamodeld */,
-				35CD40A516F1DDCC004FE83A /* Friend.h */,
-				35CD40A616F1DDCC004FE83A /* Friend.m */,
-				3587F58216DD0BB900A95216 /* Placeholder.png */,
 				3587F53616D65B6300A95216 /* BirdyNamNam-Info.plist */,
 				3587F53716D65B6300A95216 /* InfoPlist.strings */,
 				3587F53A16D65B6300A95216 /* main.m */,
 				3587F53C16D65B6300A95216 /* BirdyNamNam-Prefix.pch */,
+				3587F58216DD0BB900A95216 /* Placeholder.png */,
 				3587F54016D65B6300A95216 /* Default.png */,
 				3587F54216D65B6300A95216 /* Default@2x.png */,
 				3587F54416D65B6300A95216 /* Default-568h@2x.png */,
@@ -336,6 +331,44 @@
 				3587F58D16DE082900A95216 /* SVProgressHUD.m */,
 			);
 			path = SVProgressHUD;
+			sourceTree = "<group>";
+		};
+		35BB865B16F8AD82003FAD45 /* DetailTweet */ = {
+			isa = PBXGroup;
+			children = (
+				35BB865C16F8ADA7003FAD45 /* Reply */,
+				354D2CC016E7835800E17F5B /* GGDetailTweetViewController.h */,
+				354D2CC116E7835800E17F5B /* GGDetailTweetViewController.m */,
+				354D2CC316E7ABE700E17F5B /* GGDetailTweetTableViewCell.h */,
+				354D2CC416E7ABE800E17F5B /* GGDetailTweetTableViewCell.m */,
+			);
+			name = DetailTweet;
+			sourceTree = "<group>";
+		};
+		35BB865C16F8ADA7003FAD45 /* Reply */ = {
+			isa = PBXGroup;
+			children = (
+				3550283F16EE2FB0004771B0 /* GGReplyViewController.h */,
+				3550284016EE2FB0004771B0 /* GGReplyViewController.m */,
+				3594E2B016F0E01D00040300 /* GGUserSelectionViewController.h */,
+				3594E2B116F0E01D00040300 /* GGUserSelectionViewController.m */,
+				3594E2B316F1CB7700040300 /* UserCellView.xib */,
+				35BB865F16F9C422003FAD45 /* GGTextUtil.h */,
+				35BB866016F9C422003FAD45 /* GGTextUtil.m */,
+			);
+			name = Reply;
+			sourceTree = "<group>";
+		};
+		35CD40A916F87BEF004FE83A /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				3587F67F16E112E200A95216 /* birdynamnam.xcdatamodeld */,
+				35CD40A516F1DDCC004FE83A /* Friend.h */,
+				35CD40A616F1DDCC004FE83A /* Friend.m */,
+				354D2CBD16E4B59300E17F5B /* Tweet.h */,
+				354D2CBE16E4B59300E17F5B /* Tweet.m */,
+			);
+			name = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -442,6 +475,7 @@
 				3594E2B216F0E01E00040300 /* GGUserSelectionViewController.m in Sources */,
 				35CD40A416F1D894004FE83A /* GGFriendsListViewController.m in Sources */,
 				35CD40A716F1DDCC004FE83A /* Friend.m in Sources */,
+				35BB866116F9C422003FAD45 /* GGTextUtil.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -529,7 +563,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "BirdyNamNam/BirdyNamNam-Prefix.pch";
 				INFOPLIST_FILE = "BirdyNamNam/BirdyNamNam-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -541,7 +575,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "BirdyNamNam/BirdyNamNam-Prefix.pch";
 				INFOPLIST_FILE = "BirdyNamNam/BirdyNamNam-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};

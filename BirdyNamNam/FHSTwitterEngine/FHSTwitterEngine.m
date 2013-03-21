@@ -1899,8 +1899,6 @@ static FHSTwitterEngine *instance = nil;
         savedHttpBody = [[NSUserDefaults standardUserDefaults]objectForKey:@"SavedAccessHTTPBody"];
     }
     
-#warning test only
-    savedHttpBody = @"oauth_token=18190677-oXz76z6ynC9IW9ffsTYUzoztsvB2RsVW8srA0yuww&oauth_token_secret=WL8LBhtqhfI5lOdJCGdfcf6JSwRXal2CHrmUkYi5vU&user_id=18190677&screen_name=_myrddin_";
     
     self.accessToken = [[OAToken alloc]initWithHTTPResponseBody:savedHttpBody];
     self.loggedInUsername = [self extractUsernameFromHTTPBody:savedHttpBody];

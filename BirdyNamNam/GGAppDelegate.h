@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <UIKit/UIApplication.h>
 
 @interface UILabel (GGExtensions)
 - (void)sizeToFitFixedWidth;
