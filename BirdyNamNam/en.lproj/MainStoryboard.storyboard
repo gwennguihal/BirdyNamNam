@@ -121,7 +121,7 @@
             <objects>
                 <tableViewController id="1iA-sd-kqH" customClass="GGTimeLineViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" showsSelectionImmediatelyOnTouchBegin="NO" rowHeight="69" sectionHeaderHeight="22" sectionFooterHeight="22" id="sZ5-LV-SL3">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="548"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <prototypes>
@@ -256,11 +256,11 @@
             <objects>
                 <tableViewController id="OB6-3Y-TAb" customClass="GGDetailTweetViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="167" sectionHeaderHeight="22" sectionFooterHeight="22" id="zdF-6D-PxN">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="20" width="320" height="548"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <prototypes>
-                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="DetailTweetCell" rowHeight="167" id="JbE-qn-RLn" customClass="GGDetailTweetTableViewCell">
+                            <tableViewCell contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="DetailTweetCell" rowHeight="167" id="JbE-qn-RLn" customClass="GGDetailTweetTableViewCell">
                                 <rect key="frame" x="0.0" y="22" width="320" height="167"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
@@ -285,13 +285,6 @@
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                            <color key="highlightedColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        </label>
-                                        <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" tag="4" contentMode="left" text="Label" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="RMC-L2-10x">
-                                            <rect key="frame" x="7" y="60" width="307" height="21"/>
-                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                             <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                             <color key="highlightedColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         </label>
@@ -355,6 +348,13 @@
                                             </subviews>
                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                         </view>
+                                        <textView clipsSubviews="YES" multipleTouchEnabled="YES" tag="4" contentMode="TopLeft" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" editable="NO" text="textview" id="umd-Vr-F1B" customClass="UITouchesTextView">
+                                            <rect key="frame" x="7" y="61" width="307" height="26"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                            <color key="backgroundColor" white="0.82744069343065696" alpha="1" colorSpace="calibratedWhite"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                            <textInputTraits key="textInputTraits" autocorrectionType="no"/>
+                                        </textView>
                                     </subviews>
                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 </view>
@@ -367,7 +367,7 @@
                                     <outlet property="favoriteBtn" destination="bMY-gj-leM" id="fXH-iC-xNO"/>
                                     <outlet property="replyBtn" destination="Ubt-7W-BEs" id="YR8-TV-H87"/>
                                     <outlet property="retweetBtn" destination="A6J-B4-Jy4" id="ZAG-uz-hcf"/>
-                                    <outlet property="textLabel" destination="RMC-L2-10x" id="C9y-ld-LOb"/>
+                                    <outlet property="textView" destination="umd-Vr-F1B" id="zWn-E0-yDo"/>
                                 </connections>
                             </tableViewCell>
                         </prototypes>
@@ -377,10 +377,13 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" id="AFR-F4-BUS"/>
+                    <connections>
+                        <segue destination="1iA-sd-kqH" kind="push" identifier="hashtagSegue" id="JEb-Lq-vPq"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="XDe-Hx-u23" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2192" y="-619"/>
+            <point key="canvasLocation" x="2166" y="-619"/>
         </scene>
         <!--Reply View Controller-->
         <scene sceneID="1gz-vB-dRM">
@@ -398,6 +401,7 @@ It works perfectly!! I googled a few days, and I chose the way of adding UITextV
 It works perfectly!! I googled a few days, and I chose the way of adding UITextView as a subview to UIScrollView to achieve this. This inefficient way makes me to take a lot of time to correct anon-clear relationship between UITextView and UIScrollView. Thank you so much!! </string>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                <dataDetectorType key="dataDetectorTypes" link="YES"/>
                             </textView>
                             <navigationBar contentMode="scaleToFill" id="nPs-xO-jB1">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
@@ -459,7 +463,7 @@ It works perfectly!! I googled a few days, and I chose the way of adding UITextV
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="jbu-Ez-qxT" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2754" y="-619"/>
+            <point key="canvasLocation" x="2748" y="-619"/>
         </scene>
     </scenes>
     <resources>
@@ -480,7 +484,7 @@ It works perfectly!! I googled a few days, and I chose the way of adding UITextV
                 <relationship kind="outlet" name="favoriteBtn" candidateClass="UIButton"/>
                 <relationship kind="outlet" name="replyBtn" candidateClass="UIButton"/>
                 <relationship kind="outlet" name="retweetBtn" candidateClass="UIButton"/>
-                <relationship kind="outlet" name="textLabel" candidateClass="UILabel"/>
+                <relationship kind="outlet" name="textView" candidateClass="UITouchesTextView"/>
             </relationships>
         </class>
         <class className="GGDetailTweetViewController" superclassName="UITableViewController">
@@ -519,10 +523,16 @@ It works perfectly!! I googled a few days, and I chose the way of adding UITextV
                 <relationship kind="outlet" name="spinner" candidateClass="UIActivityIndicatorView"/>
             </relationships>
         </class>
+        <class className="UITouchesTextView" superclassName="UITextView">
+            <source key="sourceIdentifier" type="project" relativePath="./Classes/UITouchesTextView.h"/>
+        </class>
     </classes>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
+    <inferredMetricsTieBreakers>
+        <segue reference="JEb-Lq-vPq"/>
+    </inferredMetricsTieBreakers>
 </document>

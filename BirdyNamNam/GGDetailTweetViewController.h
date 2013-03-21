@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "FHSTwitterEngine.h"
+#import "GGTextUtil.h"
 
 @interface GGDetailTweetViewController : UITableViewController
 

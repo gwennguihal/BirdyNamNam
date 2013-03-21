@@ -8,12 +8,16 @@
 
 #import <UIKit/UIKit.h>
 
+typedef void (^DidSelectFriendBlock)(NSString *friendScreenName);
+
 @interface GGUserSelectionViewController : UITableViewController
 
 @property (strong, nonatomic) NSManagedObjectContext *moc;
 @property (strong, nonatomic) NSMutableArray* friends;
 
 - (id)initWithStyle:(UITableViewStyle)style andManagedObjectContext:(NSManagedObjectContext*) managedObjectContext;
-- (void) searchWithName:(NSString*) name;
+- (BOOL) searchWithName:(NSString*) name;
+- (void) setYPosition:(int) y;
+- (void) setSelectionFriendHandler:(DidSelectFriendBlock)handler;
 
 @end
